@@ -13,9 +13,9 @@ func main() {
 	for i := range 8 {
 		if math.Floor(arr[i]/10) != last {
 			if i == 0 {
-				fmt.Print(math.Floor(arr[i]/10)*10, "{", arr[i])
+				fmt.Print(math.Floor(arr[i]/10)*10, ":{", arr[i])
 			} else {
-				fmt.Print("}, ", math.Floor(arr[i]/10)*10, "{", arr[i])
+				fmt.Print("}, ", math.Floor(arr[i]/10)*10, ":{", arr[i])
 			}
 			last = math.Floor(arr[i] / 10)
 		} else {
