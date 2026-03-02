@@ -12,7 +12,6 @@ func binsearch(arr []int, id int) int {
 		} else {
 			right = mid - 1
 		}
-
-		return -1
 	}
+	return -1
 }
