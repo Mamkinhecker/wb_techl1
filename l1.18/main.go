@@ -13,16 +13,14 @@ func main() {
 		res: 0,
 	}
 	var wg sync.WaitGroup
-	for i := 0; i < 5; i++ {
-		wg.Add(1)
-		defer wg.Done()
-		go func() {
+	for range 5 {
+		wg.Go(func() {
 
 			p.mu.Lock()
 			defer p.mu.Unlock()
 
 			p.res++
-		}()
+		})
 	}
 
 	wg.Wait()
