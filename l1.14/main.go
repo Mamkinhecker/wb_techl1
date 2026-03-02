@@ -16,6 +16,12 @@ func main() {
 		fmt.Print(i)
 	case chan string:
 		fmt.Print(i)
+	case chan int:
+		fmt.Print(i)
+	case chan bool:
+		fmt.Print(i)
+	default:
+		fmt.Print("я не знаю!")
 	}
 
 }
