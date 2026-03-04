@@ -6,17 +6,16 @@ import (
 )
 
 func Solve(a, b *big.Int) {
-	var c big.Int
-	c.Add(a, b)
-	fmt.Printf("a + b =%v\n", c)
+	var sum, sub, mul, div big.Int
 
-	c.Div(a, b)
-	fmt.Printf("a / b =%v\n", c)
+	sum.Add(a, b)
+	sub.Sub(a, b)
+	mul.Mul(a, b)
+	div.Div(a, b)
 
-	c.Mul(a, b)
-	fmt.Printf("a * b =%v\n", c)
-
-	c.Sub(a, b)
-	fmt.Printf("a - b =%v\n", c)
+	fmt.Printf("a + b = %v\n", &sum)
+	fmt.Printf("a - b = %v\n", &sub)
+	fmt.Printf("a * b = %v\n", &mul)
+	fmt.Printf("a / b = %v\n", &div)
 
 }
