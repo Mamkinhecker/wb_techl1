@@ -30,3 +30,12 @@ type Adapter struct {
 func (a *Adapter) ConnectWithUSBC() string {
 	return a.oldDevice.ConnectWithUSB() + " (через адаптер USB‑A → USB‑C)"
 }
+
+func main() {
+	oldDevice := &USBDevice{name: "Флешка"}
+
+	adapter := &Adapter{oldDevice: oldDevice}
+
+	computer := &Computer{}
+	computer.Connect(adapter)
+}
