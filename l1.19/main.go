@@ -1,5 +1,11 @@
 package main
 
 func ReverseString(s string) string {
-	data := []byte
+	data := []rune(s)
+	var result []rune
+	for i := len(data) - 1; i >= 0; i-- {
+		result = append(result, data[i])
+	}
+
+	return string(result)
 }
