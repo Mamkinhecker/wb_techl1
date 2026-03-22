@@ -7,6 +7,12 @@ import (
 	"unicode"
 )
 
+// Unpack распаковывает строку, содержащую повторяющиеся символы.
+// Пример: "a4bc2d5e" → "aaaabccddddde".
+// Поддерживает экранирование цифр обратной косой чертой: \4 → "4".
+// Число 0 удаляет предшествующий символ.
+// Возвращает ошибку, если строка начинается с цифры, содержит неэкранированную цифру
+// без символа перед ней, или обратную косую черту в конце.
 func Unpack(s string) (string, error) {
 	if s == "" {
 		return "", nil
@@ -20,7 +26,7 @@ func Unpack(s string) (string, error) {
 		if runes[i] == '\\' {
 			i++
 			if i == n {
-				return "", errors.New("wrong string!")
+				return "", errors.New("unexpected backslash at end of string")
 			}
 
 			curr := runes[i]
@@ -39,7 +45,7 @@ func Unpack(s string) (string, error) {
 		}
 
 		if unicode.IsDigit(runes[i]) {
-			return "", errors.New("wrong string!")
+			return "", errors.New("invalid string: digit without preceding character")
 		}
 
 		curr := runes[i]
@@ -57,6 +63,8 @@ func Unpack(s string) (string, error) {
 	return builder.String(), nil
 }
 
+// readCount считывает число повторений, начиная с позиции start.
+// Возвращает количество повторений (по умолчанию 1), следующий индекс и ошибку.
 func readCount(runes []rune, start int) (int, int, error) {
 	if start >= len(runes) {
 		return 1, start, nil
