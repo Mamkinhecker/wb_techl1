@@ -11,6 +11,7 @@ import (
 	"strings"
 )
 
+// config хранит настройки сортировки.
 type config struct {
 	column   int    // -k N (1-индекс)
 	numeric  bool   // -n
@@ -24,9 +25,9 @@ type config struct {
 }
 
 func main() {
-	cfg := ParseFlags()
+	cfg := parseFlags()
 
-	lines, err := ReadLines(cfg.filename)
+	lines, err := readLines(cfg.filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading input: %v\n", err)
 		os.Exit(1)
@@ -49,7 +50,8 @@ func main() {
 	writeLines(lines)
 }
 
-func ParseFlags() config {
+// parseFlags обрабатывает аргументы командной строки.
+func parseFlags() config {
 	var (
 		col     = flag.Int("k", 0, "сортировать по колонке N")
 		numeric = flag.Bool("n", false, "числовая сортировка")
@@ -76,6 +78,7 @@ func ParseFlags() config {
 	return cfg
 }
 
+// getFilename возвращает имя файла, если оно было указано, иначе пустую строку.
 func getFilename() string {
 	args := flag.Args()
 	if len(args) > 0 {
@@ -84,7 +87,8 @@ func getFilename() string {
 	return ""
 }
 
-func ReadLines(fileName string) ([]string, error) {
+// readLines читает строки из файла или stdin.
+func readLines(fileName string) ([]string, error) {
 	var r io.Reader
 	if fileName == "" {
 		r = os.Stdin
@@ -94,29 +98,28 @@ func ReadLines(fileName string) ([]string, error) {
 			return nil, err
 		}
 		defer f.Close()
-
 		r = f
 	}
 
 	var lines []string
 	scanner := bufio.NewScanner(r)
-
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
-
 	if err := scanner.Err(); err != nil {
 		return nil, err
 	}
 	return lines, nil
 }
 
+// writeLines выводит строки в stdout.
 func writeLines(lines []string) {
 	for _, s := range lines {
 		fmt.Println(s)
 	}
 }
 
+// isSorted проверяет, что строки уже отсортированы.
 func isSorted(lines []string, cfg config) bool {
 	for i := 1; i < len(lines); i++ {
 		if less(lines[i], lines[i-1], cfg) {
@@ -126,12 +129,14 @@ func isSorted(lines []string, cfg config) bool {
 	return true
 }
 
+// sortLines сортирует строки по заданным правилам.
 func sortLines(lines []string, cfg config) {
 	sort.Slice(lines, func(i, j int) bool {
 		return less(lines[i], lines[j], cfg)
 	})
 }
 
+// less определяет, должна ли строка a быть перед b в отсортированном порядке.
 func less(a, b string, cfg config) bool {
 	valA, valB := getCompareValues(a, b, cfg)
 	cmp := compare(valA, valB, cfg)
@@ -141,11 +146,12 @@ func less(a, b string, cfg config) bool {
 	return cmp < 0
 }
 
+// getCompareValues возвращает пару строк (или чисел) для сравнения.
 func getCompareValues(a, b string, cfg config) (string, string) {
 	if cfg.column == 0 {
 		return a, b
 	}
-	col := cfg.column - 1
+	col := cfg.column - 1 // переводим в 0-индекс
 	colsA := strings.Split(a, "\t")
 	colsB := strings.Split(b, "\t")
 	valA := ""
@@ -163,6 +169,7 @@ func getCompareValues(a, b string, cfg config) (string, string) {
 	return valA, valB
 }
 
+// compare сравнивает две строки (или числа) в соответствии с заданными флагами.
 func compare(a, b string, cfg config) int {
 	if cfg.numeric {
 		return compareNumeric(a, b)
@@ -176,6 +183,7 @@ func compare(a, b string, cfg config) int {
 	return strings.Compare(a, b)
 }
 
+// compareNumeric сравнивает строки как числа.
 func compareNumeric(a, b string) int {
 	fa, errA := strconv.ParseFloat(a, 64)
 	fb, errB := strconv.ParseFloat(b, 64)
@@ -183,12 +191,11 @@ func compareNumeric(a, b string) int {
 		return strings.Compare(a, b)
 	}
 	if errA != nil {
-		return -1
+		return -1 // нечисловая строка идёт перед числовой (как 0)
 	}
 	if errB != nil {
 		return 1
 	}
-
 	switch {
 	case fa < fb:
 		return -1
@@ -199,12 +206,12 @@ func compareNumeric(a, b string) int {
 	}
 }
 
+// parseHumanSize преобразует строку в байты (человекочитаемый размер).
 func parseHumanSize(s string) (float64, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return 0, fmt.Errorf("empty")
 	}
-
 	suffix := s[len(s)-1]
 	var numStr string
 	var factor float64
@@ -238,6 +245,7 @@ func parseHumanSize(s string) (float64, error) {
 	return num * factor, nil
 }
 
+// compareHuman сравнивает строки как человекочитаемые размеры.
 func compareHuman(a, b string) int {
 	va, errA := parseHumanSize(a)
 	vb, errB := parseHumanSize(b)
@@ -245,7 +253,7 @@ func compareHuman(a, b string) int {
 		return strings.Compare(a, b)
 	}
 	if errA != nil {
-		return -1
+		return -1 // невалидная строка идёт раньше
 	}
 	if errB != nil {
 		return 1
@@ -260,13 +268,13 @@ func compareHuman(a, b string) int {
 	}
 }
 
+// monthValue возвращает номер месяца (1-12) или 0 для некорректной строки.
 func monthValue(s string) int {
 	months := map[string]int{
 		"Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4,
 		"May": 5, "Jun": 6, "Jul": 7, "Aug": 8,
 		"Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12,
 	}
-
 	trimmed := strings.TrimSpace(s)
 	if len(trimmed) >= 3 {
 		key := trimmed[:3]
@@ -277,6 +285,7 @@ func monthValue(s string) int {
 	return 0
 }
 
+// compareMonth сравнивает строки как названия месяцев.
 func compareMonth(a, b string) int {
 	ma := monthValue(a)
 	mb := monthValue(b)
@@ -299,6 +308,7 @@ func compareMonth(a, b string) int {
 	}
 }
 
+// unique удаляет дубликаты из отсортированного среза.
 func unique(lines []string, cfg config) []string {
 	if len(lines) == 0 {
 		return lines
@@ -312,6 +322,7 @@ func unique(lines []string, cfg config) []string {
 	return res
 }
 
+// equal возвращает true, если две строки считаются равными по правилам сортировки.
 func equal(a, b string, cfg config) bool {
 	return !less(a, b, cfg) && !less(b, a, cfg)
 }
